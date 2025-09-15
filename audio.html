@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Audio Tuner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Custom styles for sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #374151; /* bg-gray-700 */
+            border-radius: 5px;
+            outline: none;
+            transition: opacity .2s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #38bdf8; /* bg-sky-400 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid #1f2937; /* bg-gray-800 */
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #38bdf8; /* bg-sky-400 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid #1f2937; /* bg-gray-800 */
+        }
+        /* Custom scrollbar for results */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #4b5563; /* bg-gray-600 */
+            border-radius: 10px;
+            border: 2px solid #1f2937; /* bg-gray-800 */
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-4xl mx-auto bg-gray-800 rounded-2xl shadow-2xl shadow-sky-500/10 p-6 md:p-10 transition-all duration-500 border border-gray-700">
+            
+            <header class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold font-orbitron text-sky-400 mb-2">
+                    Sonic Architect
+                </h1>
+                <p class="text-gray-400">Tune your audio with precision EQ and creator-inspired presets.</p>
+            </header>
+
+            <!-- Audio Upload and Info -->
+            <div id="upload-section" class="mb-6 p-6 bg-gray-900/50 rounded-lg border border-dashed border-gray-600 text-center">
+                <label for="audio-file" class="cursor-pointer text-sky-400 hover:text-sky-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                    <span id="file-name" class="font-semibold">Click to upload an audio file (MP3, WAV)</span>
+                </label>
+                <input type="file" id="audio-file" class="hidden" accept="audio/mpeg, audio/wav">
+                <p id="status-message" class="text-sm text-gray-500 mt-2">No file selected.</p>
+            </div>
+
+            <!-- Main Controls -->
+            <main id="controls-panel" class="hidden">
+                <!-- Playback and Volume -->
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6 bg-gray-900/50 p-4 rounded-lg mb-6">
+                    <div class="flex items-center gap-4">
+                        <button id="play-pause-btn" class="p-3 bg-sky-500 text-white rounded-full hover:bg-sky-600 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-sky-400">
+                            <!-- Play Icon -->
+                            <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                            <!-- Pause Icon -->
+                            <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <button id="reset-btn" class="p-3 bg-gray-600 text-white rounded-full hover:bg-gray-500 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-400">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 4l16 16" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-3 w-full md:w-1/3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.858 15.858a5 5 0 010-7.072m2.828 9.9a9 9 0 010-12.728" /></svg>
+                        <input id="volume-slider" type="range" min="0" max="1.5" value="1" step="0.01" class="w-full">
+                    </div>
+                </div>
+
+                <!-- EQ and Presets -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- EQ Sliders -->
+                    <div class="md:col-span-2 bg-gray-900/50 p-6 rounded-lg space-y-6">
+                        <h3 class="font-bold text-xl text-center text-gray-300 mb-4">Manual EQ Controls</h3>
+                        <!-- Sliders will be dynamically inserted here -->
+                        <div id="eq-sliders" class="space-y-6"></div>
+                    </div>
+
+                    <!-- Creator & Artist Mode -->
+                    <div class="bg-gray-900/50 p-6 rounded-lg">
+                        <h3 class="font-bold text-xl text-center text-gray-300 mb-4">Creator & Artist Mode</h3>
+                        <p class="text-sm text-gray-400 text-center mb-4">Apply presets inspired by iconic sound styles.</p>
+                        <select id="preset-selector" class="w-full bg-gray-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400">
+                            <option value="default">-- Select a Preset --</option>
+                            <!-- Presets will be dynamically inserted here -->
+                        </select>
+                    </div>
+                </div>
+            </main>
+            
+            <footer class="text-center mt-8 text-gray-500 text-xs max-w-2xl mx-auto">
+                <p>Disclaimer: This tool is for educational and entertainment purposes. The "Creator & Artist Modes" are artistic interpretations and not officially endorsed. Results may vary based on source audio quality.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Web Audio API Setup ---
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            let audioSource = null;
+            let audioBuffer = null;
+            let isPlaying = false;
+
+            // --- DOM Elements ---
+            const fileInput = document.getElementById('audio-file');
+            const fileNameDisplay = document.getElementById('file-name');
+            const statusMessage = document.getElementById('status-message');
+            const controlsPanel = document.getElementById('controls-panel');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            const resetBtn = document.getElementById('reset-btn');
+            const volumeSlider = document.getElementById('volume-slider');
+            const eqSlidersContainer = document.getElementById('eq-sliders');
+            const presetSelector = document.getElementById('preset-selector');
+
+            // --- EQ Configuration ---
+            const eqSettings = {
+                subBass: { label: 'Sub-Bass (20-60Hz)', type: 'lowshelf', freq: 60, min: -24, max: 24, step: 1, defaultValue: 0 },
+                bass: { label: 'Bass (60-250Hz)', type: 'lowshelf', freq: 250, min: -24, max: 24, step: 1, defaultValue: 0 },
+                mids: { label: 'Mids (250Hz-2kHz)', type: 'peaking', freq: 1000, min: -24, max: 24, step: 1, defaultValue: 0 },
+                treble: { label: 'Treble (2-6kHz)', type: 'highshelf', freq: 4000, min: -24, max: 24, step: 1, defaultValue: 0 },
+                presence: { label: 'Presence (6-20kHz)', type: 'highshelf', freq: 8000, min: -24, max: 24, step: 1, defaultValue: 0 },
+            };
+
+            // --- Creator & Artist Presets ---
+            const presets = {
+                'default': { label: '-- Select a Preset --', values: { subBass: 0, bass: 0, mids: 0, treble: 0, presence: 0 } },
+                'filmmakers': { label: '--- Filmmakers ---', disabled: true },
+                'nolan': { label: 'Impact (C. Nolan Style)', values: { subBass: 12, bass: 6, mids: -4, treble: 2, presence: 5 } },
+                'zimmer': { label: 'Epic Score (H. Zimmer Style)', values: { subBass: 15, bass: 8, mids: 2, treble: 6, presence: 8 } },
+                'tarantino': { label: 'Vintage Dialogue (Q. Tarantino Style)', values: { subBass: -6, bass: -2, mids: 6, treble: 4, presence: 2 } },
+                'lynch': { label: 'Surreal Ambience (D. Lynch Style)', values: { subBass: 8, bass: -5, mids: -8, treble: 10, presence: 12 } },
+                'artists': { label: '--- Music Artists ---', disabled: true },
+                'daftpunk': { label: 'Electronic Funk (Daft Punk Style)', values: { subBass: 9, bass: 5, mids: -3, treble: 6, presence: 7 } },
+                'eilish': { label: 'Intimate Vocals (B. Eilish Style)', values: { subBass: 12, bass: 2, mids: 5, treble: -2, presence: 3 } },
+                'swift': { label: 'Pop Polish (T. Swift Style)', values: { subBass: 2, bass: 4, mids: 1, treble: 5, presence: 6 } },
+                'theweeknd': { label: '80s Nostalgia (The Weeknd Style)', values: { subBass: 4, bass: 7, mids: -2, treble: 8, presence: 5 } },
+                'utility': { label: '--- Utility ---', disabled: true },
+                'vocalBoost': { label: 'Vocal Boost', values: { subBass: -8, bass: -4, mids: 6, treble: 2, presence: 4 } },
+                'bassBoost': { label: 'Bass Boost', values: { subBass: 10, bass: 8, mids: -2, treble: -4, presence: -2 } },
+            };
+            
+            let filters = {};
+            const masterGain = audioContext.createGain();
+            masterGain.connect(audioContext.destination);
+
+            // --- Initialize UI ---
+            function initializeUI() {
+                // Create EQ Sliders
+                Object.entries(eqSettings).forEach(([key, setting]) => {
+                    const sliderId = `${key}-slider`;
+                    const valueId = `${key}-value`;
+                    const sliderHTML = `
+                        <div class="w-full">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="${sliderId}" class="text-sm font-medium text-gray-400">${setting.label}</label>
+                                <span id="${valueId}" class="text-sm font-bold text-sky-400 w-12 text-right">${setting.defaultValue.toFixed(1)} dB</span>
+                            </div>
+                            <input id="${sliderId}" type="range" min="${setting.min}" max="${setting.max}" value="${setting.defaultValue}" step="${setting.step}" data-filter="${key}">
+                        </div>
+                    `;
+                    eqSlidersContainer.innerHTML += sliderHTML;
+                });
+
+                // Populate Presets
+                Object.entries(presets).forEach(([key, preset]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = preset.label;
+                    if (preset.disabled) {
+                        option.disabled = true;
+                        option.classList.add('text-gray-500', 'font-bold', 'mt-2');
+                    }
+                    presetSelector.appendChild(option);
+                });
+            }
+
+            // --- Audio Processing ---
+            function setupAudioNodes() {
+                // Disconnect any existing filters
+                Object.values(filters).forEach(filter => filter.disconnect());
+
+                // Create and configure filters
+                filters = Object.entries(eqSettings).reduce((acc, [key, setting]) => {
+                    const filter = audioContext.createBiquadFilter();
+                    filter.type = setting.type;
+                    filter.frequency.value = setting.freq;
+                    filter.Q.value = 1; // Default Q for peaking
+                    filter.gain.value = setting.defaultValue;
+                    acc[key] = filter;
+                    return acc;
+                }, {});
+
+                // Connect filters in series
+                const filterChain = Object.values(filters);
+                for (let i = 0; i < filterChain.length - 1; i++) {
+                    filterChain[i].connect(filterChain[i + 1]);
+                }
+                
+                // Connect the last filter to the master gain
+                if(filterChain.length > 0) {
+                    filterChain[filterChain.length - 1].connect(masterGain);
+                }
+
+                // Add event listeners to new sliders
+                addSliderListeners();
+            }
+
+            function playAudio() {
+                if (!audioBuffer) return;
+                
+                // If there's an existing source, stop it.
+                if (audioSource) {
+                    audioSource.stop();
+                }
+
+                // Create a new source for playback.
+                audioSource = audioContext.createBufferSource();
+                audioSource.buffer = audioBuffer;
+
+                // Connect the source to the first filter in the chain
+                if (Object.values(filters).length > 0) {
+                    audioSource.connect(Object.values(filters)[0]);
+                } else {
+                    audioSource.connect(masterGain);
+                }
+                
+                audioSource.start(0);
+                isPlaying = true;
+                updatePlayPauseButton();
+
+                audioSource.onended = () => {
+                    isPlaying = false;
+                    updatePlayPauseButton();
+                };
+            }
+
+            function stopAudio() {
+                if (audioSource) {
+                    audioSource.stop();
+                    audioSource = null;
+                }
+                isPlaying = false;
+                updatePlayPauseButton();
+            }
+            
+            function updatePlayPauseButton() {
+                if (isPlaying) {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                } else {
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                }
+            }
+
+            // --- Event Handlers ---
+            fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                fileNameDisplay.textContent = file.name;
+                statusMessage.textContent = 'Decoding audio... please wait.';
+                playPauseBtn.disabled = true;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    audioContext.decodeAudioData(e.target.result, (buffer) => {
+                        audioBuffer = buffer;
+                        statusMessage.textContent = 'Ready to play.';
+                        controlsPanel.classList.remove('hidden');
+                        playPauseBtn.disabled = false;
+                        resetAll();
+                    }, (error) => {
+                        statusMessage.textContent = 'Error decoding audio file.';
+                        console.error('decodeAudioData error', error);
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            });
+
+            playPauseBtn.addEventListener('click', () => {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+
+                if (isPlaying) {
+                    stopAudio();
+                } else {
+                    playAudio();
+                }
+            });
+
+            function addSliderListeners() {
+                document.querySelectorAll('#eq-sliders input[type="range"]').forEach(slider => {
+                    slider.addEventListener('input', (event) => {
+                        const filterKey = event.target.dataset.filter;
+                        const value = parseFloat(event.target.value);
+                        if (filters[filterKey]) {
+                            filters[filterKey].gain.value = value;
+                            document.getElementById(`${filterKey}-value`).textContent = `${value.toFixed(1)} dB`;
+                        }
+                    });
+                });
+            }
+
+            volumeSlider.addEventListener('input', (event) => {
+                masterGain.gain.value = parseFloat(event.target.value);
+            });
+
+            presetSelector.addEventListener('change', (event) => {
+                const presetKey = event.target.value;
+                const preset = presets[presetKey];
+                if (preset && preset.values) {
+                    applyPreset(preset.values);
+                }
+            });
+            
+            resetBtn.addEventListener('click', resetAll);
+
+            // --- Helper Functions ---
+            function applyPreset(presetValues) {
+                Object.entries(presetValues).forEach(([key, value]) => {
+                    const slider = document.getElementById(`${key}-slider`);
+                    const valueDisplay = document.getElementById(`${key}-value`);
+                    if (slider && filters[key]) {
+                        slider.value = value;
+                        filters[key].gain.value = value;
+                        valueDisplay.textContent = `${value.toFixed(1)} dB`;
+                    }
+                });
+            }
+            
+            function resetAll() {
+                // Reset all sliders and filters to their default values
+                applyPreset(presets.default.values);
+                // Reset master volume
+                volumeSlider.value = 1;
+                masterGain.gain.value = 1;
+                // Set preset dropdown to default
+                presetSelector.value = 'default';
+            }
+
+            // --- Initial Load ---
+            initializeUI();
+            setupAudioNodes();
+            playPauseBtn.disabled = true;
+        });
+    </script>
+
+</body>
+</html>
